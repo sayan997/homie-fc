@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HOMIE FC — Football Updates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1a7a3f; --green-light: #e6f4ec;
+      --black: #0f0f0f; --white: #f9f9f6; --gray: #6b6b6b; --gray-light: #efefec;
+      --border: #e0e0da; --red: #c0392b; --amber: #d4860b; --radius: 10px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--white); color: var(--black); font-size: 16px; line-height: 1.65; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: var(--black); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; height: 56px; }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--white); letter-spacing: 2px; text-decoration: none; }
+    .nav-logo span { color: #4ade80; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: #aaa; text-decoration: none; font-size: 0.875rem; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: #4ade80; }
+    .nav-wa { background: #25D366; color: #fff !important; padding: 0.35rem 0.9rem; border-radius: 6px; font-size: 0.8rem !important; }
+
+    .hero { background: var(--black); color: var(--white); padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 40px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.03) 60px); pointer-events: none; }
+    .hero-tag { display: inline-block; background: #0e5c2a; color: #4ade80; font-size: 0.75rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 999px; margin-bottom: 1.5rem; }
+    .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 12vw, 9rem); line-height: 0.9; letter-spacing: 3px; margin-bottom: 1.25rem; }
+    .hero h1 em { font-style: normal; color: #4ade80; }
+    .hero p { max-width: 500px; margin: 0 auto 2rem; color: #aaa; font-size: 1.05rem; }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; border-radius: 8px; padding: 0.7rem 1.5rem; font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s, opacity 0.15s; border: none; font-family: 'DM Sans', sans-serif; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #4ade80; color: var(--black); }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-outline { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.6); }
+
+    .ticker-wrap { background: var(--green); overflow: hidden; padding: 0.55rem 0; white-space: nowrap; }
+    .ticker { display: inline-flex; gap: 3rem; animation: ticker 40s linear infinite; }
+    .ticker span { color: #d1fae5; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+    .ticker span strong { color: #fff; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    section { max-width: 1080px; margin: 0 auto; padding: 4rem 2rem; }
+    .section-label { font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2.5px; color: var(--green); margin-bottom: 0.5rem; }
+    h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.2rem, 5vw, 3.2rem); letter-spacing: 1.5px; line-height: 1; margin-bottom: 2rem; }
+
+    .loading { text-align: center; padding: 3rem 2rem; color: var(--gray); font-size: 0.9rem; }
+    .spinner { display: inline-block; width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.75rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { background: #fff8e1; border: 1px solid #ffe082; border-radius: var(--radius); padding: 1.25rem 1.5rem; font-size: 0.9rem; line-height: 1.8; color: #5d4037; }
+    .error-msg strong { color: var(--black); }
+
+    .league-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .tab-btn { background: var(--gray-light); border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.9rem; font-size: 0.82rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--black); transition: all 0.15s; }
+    .tab-btn:hover { background: var(--border); }
+    .tab-btn.active { background: var(--black); color: #fff; border-color: var(--black); }
+
+    .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1rem; }
+    .score-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: box-shadow 0.2s; }
+    .score-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.07); }
+    .score-meta { display: flex; justify-content: space-between; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gray); margin-bottom: 1rem; }
+    .score-status-live { color: var(--red); font-weight: 600; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .score-status-ft { color: var(--green); font-weight: 600; }
+    .score-status-ns { color: var(--amber); font-weight: 600; }
+    .score-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .team { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; flex: 1; }
+    .team-fb { width: 44px; height: 44px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .team-name { font-size: 0.78rem; font-weight: 500; text-align: center; }
+    .score-nums { text-align: center; min-width: 64px; }
+    .goals { font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; letter-spacing: 4px; line-height: 1; }
+    .minute-label { font-size: 0.72rem; color: var(--red); font-weight: 600; }
+    .vs-txt { font-size: 0.9rem; color: var(--gray); }
+
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 560px; }
+    thead { background: var(--black); color: var(--white); }
+    thead th { padding: 0.75rem 1rem; text-align: left; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+    thead th:not(:first-child):not(:nth-child(2)) { text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--gray-light); }
+    tbody tr.cl-row { background: #e6f4ec; }
+    tbody tr.cl-row:hover { background: #d4eddb; }
+    tbody tr.rel-row { background: #fee2e2; }
+    tbody tr.rel-row:hover { background: #fecaca; }
+    td { padding: 0.75rem 1rem; color: var(--black); white-space: nowrap; }
+    td:not(:first-child):not(:nth-child(2)) { text-align: center; color: var(--gray); }
+    .team-cell { display: flex; align-items: center; gap: 8px; }
+    .crest-sm-fb { width: 20px; height: 20px; border-radius: 50%; background: #555; display: inline-flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .form-dots { display: flex; gap: 3px; justify-content: center; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-W { background: var(--green); }
+    .dot-D { background: var(--amber); }
+    .dot-L { background: var(--red); }
+
+    .fixtures-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .fix-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); gap: 1rem; flex-wrap: wrap; transition: box-shadow 0.2s; }
+    .fix-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .fix-teams { display: flex; align-items: center; gap: 0.75rem; flex: 1; flex-wrap: wrap; }
+    .fix-team { font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .fix-vs { color: var(--gray); font-size: 0.8rem; }
+    .fix-meta { text-align: right; flex-shrink: 0; }
+    .fix-time { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+    .fix-comp { font-size: 0.72rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+
+    .cta-section { background: var(--black); text-align: center; padding: 5rem 2rem; color: var(--white); }
+    .cta-section .section-label { color: #4ade80; }
+    .cta-section h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 1rem; letter-spacing: 1.5px; }
+    .cta-section p { color: #aaa; max-width: 460px; margin: 0 auto 2rem; }
+    .btn-wa { background: #25D366; color: #fff; font-size: 1rem; padding: 0.85rem 2rem; }
+    .btn-wa svg { width: 20px; height: 20px; fill: #fff; }
+
+    footer { background: #080808; color: #555; text-align: center; padding: 2rem; font-size: 0.82rem; }
+    footer strong { color: #888; }
+    .section-divider { border: none; border-top: 1px solid var(--border); max-width: 1080px; margin: 0 auto; }
+    .updated-note { font-size: 0.75rem; color: var(--gray); margin-top: 0.75rem; text-align: right; }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 1rem; }
+      .nav-links { gap: 0.75rem; }
+      section { padding: 3rem 1.25rem; }
+      .hero { padding: 3.5rem 1.25rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">HOMIE <span>FC</span></a>
+  <ul class="nav-links">
+    <li><a href="#scores">Scores</a></li>
+    <li><a href="#standings">Standings</a></li>
+    <li><a href="#fixtures">Fixtures</a></li>
+    <li><a href="#join" class="nav-wa">Join Group</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">⚽ Live — Auto-Updating Football Hub</div>
+  <h1>HOMIE <em>FC</em></h1>
+  <p>Live scores, standings & fixtures — automatically updated for the Homie WhatsApp community.</p>
+  <div class="hero-actions">
+    <a href="#scores" class="btn btn-primary">View Today's Scores</a>
+    <a href="#join" class="btn btn-outline">Join WhatsApp Group</a>
+  </div>
+</div>
+
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker" id="ticker-inner">
+    <span>⚽ Loading live data...</span><span>⚽ Loading live data...</span><span>⚽ Loading live data...</span>
+  </div>
+</div>
+
+<section id="scores">
+  <div class="section-label">Today's Matches</div>
+  <h2>Live &amp; Recent Scores</h2>
+  <div class="league-tabs" id="score-tabs"></div>
+  <div id="scores-out"><div class="loading"><div class="spinner"></div><br/>Fetching today's scores...</div></div>
+  <p class="updated-note" id="scores-time"></p>
+</section>
+
+<hr class="section-divider"/>
+
+<section id="standings">
+  <div class="section-label">League Tables</div>
+  <h2>Standings</h2>
+  <div class="league-tabs" id="standing-tabs"></div>
+  <div id="standings-out"><div class="loading"><div class="spinner"></div><br/>Fetching standings...</div></div>
+</section>
+
+<hr class="section-divider"/>
+
+<section id="fixtures">
+  <div class="section-label">Coming Up</div>
+  <h2>Upcoming Fixtures</h2>
+  <div class="league-tabs" id="fixture-tabs"></div>
+  <div id="fixtures-out"><div class="loading"><div class="spinner"></div><br/>Fetching fixtures...</div></div>
+</section>
+
+<div class="cta-section" id="join">
+  <div class="section-label">The Community</div>
+  <h2>Join the Homie Group</h2>
+  <p>Real-time updates, predictions, debates &amp; banter — straight to your WhatsApp.</p>
+  <a href="https://chat.whatsapp.com/YOUR_INVITE_LINK_HERE" target="_blank" class="btn btn-wa">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.852L.057 23.49l5.797-1.452A11.941 11.941 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.036-1.385l-.361-.214-3.44.862.92-3.355-.235-.374A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+    Join on WhatsApp
+  </a>
+</div>
+
+<footer>
+  <p>© 2026 <strong>Homie FC</strong> · Powered by football-data.org · Built for the Homies ⚽</p>
+  <p style="margin-top:0.4rem;">Data refreshes automatically every 60 seconds.</p>
+</footer>
+
+<script>
+const API_KEY = '023a179b51f54102b4ea4d56476cdf00';
+const BASE    = 'https://api.football-data.org/v4';
+
+// Three proxy options — we try them in order until one works
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
+
+async function api(path) {
+  const target = `${BASE}${path}`;
+  const headers = { 'X-Auth-Token': API_KEY };
+  let lastErr;
+
+  // Try direct first (works if football-data.org ever adds CORS headers)
+  try {
+    const r = await fetch(target, { headers });
+    if (r.ok) {
+      const d = await r.json();
+      if (!d.errorCode) return d;
+    }
+  } catch(e) { lastErr = e; }
+
+  // Try each proxy in order
+  for (const makeUrl of PROXIES) {
+    try {
+      const proxyTarget = makeUrl(target);
+      // allorigins wraps in {contents}, others return raw
+      const r = await fetch(proxyTarget, {
+        headers: proxyTarget.includes('allorigins') ? {} : headers
+      });
+      if (!r.ok) continue;
+      const text = await r.text();
+      let d;
+      try {
+        // allorigins /raw returns raw JSON; /get returns {contents:"..."}
+        d = JSON.parse(text);
+        if (d.contents) d = JSON.parse(d.contents);
+      } catch(e) { continue; }
+      if (d.errorCode) throw new Error(d.message || 'API error ' + d.errorCode);
+      return d;
+    } catch(e) { lastErr = e; }
+  }
+
+  throw lastErr || new Error('All proxies failed');
+}
+
+const LEAGUES = [
+  { id: 2021, name: 'Premier League' },
+  { id: 2014, name: 'La Liga'        },
+  { id: 2002, name: 'Bundesliga'     },
+  { id: 2019, name: 'Serie A'        },
+  { id: 2015, name: 'Ligue 1'        },
+  { id: 2001, name: 'Champs League'  },
+];
+
+function abbr(n) { return (n||'???').split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase(); }
+function tName(t) { return (t&&(t.shortName||t.name))||''; }
+function tCrest(t) { return (t&&t.crest)||''; }
+
+function badge(url, name, size) {
+  const a = abbr(name);
+  const fb = `<div class="team-fb" style="width:${size}px;height:${size}px;font-size:${Math.floor(size*0.27)}px">${a}</div>`;
+  if (!url) return fb;
+  return `<img src="${url}" alt="${name}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:contain" onerror="this.outerHTML=\`${fb.replace(/`/g,"'")}\`">`;
+}
+
+function smBadge(url, name) {
+  const a = abbr(name);
+  const fb = `<span class="crest-sm-fb">${a}</span>`;
+  if (!url) return fb;
+  return `<img src="${url}" alt="${name}" width="20" height="20" style="width:20px;height:20px;object-fit:contain;vertical-align:middle" onerror="this.outerHTML='${fb}'">`;
+}
+
+function fmtTime(utc) { return new Date(utc).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(utc) { return new Date(utc).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}); }
+
+function statusBadge(m) {
+  const s = m.status;
+  if (s==='IN_PLAY'||s==='PAUSED') return `<span class="score-status-live">● LIVE</span>`;
+  if (s==='HALFTIME')  return `<span class="score-status-live">● HT</span>`;
+  if (s==='FINISHED')  return `<span class="score-status-ft">FT</span>`;
+  return `<span class="score-status-ns">${fmtTime(m.utcDate)}</span>`;
+}
+
+function scoreBlock(m) {
+  if (!['IN_PLAY','PAUSED','HALFTIME','FINISHED'].includes(m.status)) return `<div class="vs-txt">vs</div>`;
+  const ft=m.score&&m.score.fullTime, ht=m.score&&m.score.halfTime;
+  const h = ft&&ft.home!=null?ft.home:(ht&&ht.home!=null?ht.home:'–');
+  const a = ft&&ft.away!=null?ft.away:(ht&&ht.away!=null?ht.away:'–');
+  const mn = m.status==='IN_PLAY'&&m.minute?`<div class="minute-label">${m.minute}'</div>`:'';
+  return `<div class="goals">${h} · ${a}</div>${mn}`;
+}
+
+// ── SCORES ──
+let scoresByLeague = {};
+
+async function loadScores() {
+  const today = new Date().toISOString().slice(0,10);
+  try {
+    const data = await api('/matches?date='+today);
+    const matches = data.matches||[];
+    scoresByLeague = {};
+    matches.forEach(m => {
+      const cid = m.competition&&m.competition.id;
+      if (!cid) return;
+      if (!scoresByLeague[cid]) scoresByLeague[cid]={name:(m.competition&&m.competition.name)||'',list:[]};
+      scoresByLeague[cid].list.push(m);
+    });
+    const ids = Object.keys(scoresByLeague);
+    const tabsEl = document.getElementById('score-tabs');
+    if (!ids.length) {
+      document.getElementById('scores-out').innerHTML='<p style="color:var(--gray);padding:1rem 0">No matches today — check back on a matchday!</p>';
+      tabsEl.innerHTML=''; return;
+    }
+    tabsEl.innerHTML = ids.map((id,i)=>
+      `<button class="tab-btn${i===0?' active':''}" onclick="showScoreTab('${id}',this)">${scoresByLeague[id].name}</button>`
+    ).join('');
+    showScoreTab(ids[0], tabsEl.querySelector('.active'));
+    document.getElementById('scores-time').textContent='Last updated: '+new Date().toLocaleTimeString();
+
+    // Ticker
+    const items = matches.map(m=>{
+      const h=tName(m.homeTeam), a=tName(m.awayTeam), s=m.status;
+      const live=['IN_PLAY','PAUSED','HALFTIME'].includes(s), fin=s==='FINISHED';
+      let score='';
+      if (live||fin){
+        const ft=m.score&&m.score.fullTime, ht=m.score&&m.score.halfTime;
+        score=` ${ft&&ft.home!=null?ft.home:(ht&&ht.home!=null?ht.home:'')}–${ft&&ft.away!=null?ft.away:(ht&&ht.away!=null?ht.away:'')}`;
+      }
+      return `<span>${live?'🔴':fin?'⚽':'🗓️'} <strong>${h}${score} vs ${a}</strong> · ${live?'LIVE':fin?'FT':fmtTime(m.utcDate)}</span>`;
+    });
+    if (items.length) document.getElementById('ticker-inner').innerHTML=[...items,...items].join('');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('scores-out').innerHTML=`<div class="error-msg">
+      <strong>⚠️ Could not load live data</strong><br><br>
+      The free API requires requests to come from a <strong>live website URL</strong>, not a local file.<br><br>
+      ✅ <strong>Fix:</strong> Make sure you have uploaded this file to GitHub Pages and are visiting the live <code>github.io</code> URL — not opening the file directly from your computer.<br><br>
+      <small>Error: ${e.message}</small>
+    </div>`;
+    document.getElementById('standings-out').innerHTML=document.getElementById('scores-out').innerHTML;
+    document.getElementById('fixtures-out').innerHTML=document.getElementById('scores-out').innerHTML;
+  }
+}
+
+window.showScoreTab = function(lid, btn) {
+  document.querySelectorAll('#score-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const g=scoresByLeague[lid];
+  if (!g||!g.list.length){document.getElementById('scores-out').innerHTML='<p style="color:var(--gray)">No matches for this league today.</p>';return;}
+  document.getElementById('scores-out').innerHTML=`<div class="scores-grid">${g.list.map(m=>`
+    <div class="score-card">
+      <div class="score-meta"><span>${(m.competition&&m.competition.name)||''}</span>${statusBadge(m)}</div>
+      <div class="score-body">
+        <div class="team">${badge(tCrest(m.homeTeam),tName(m.homeTeam),44)}<div class="team-name">${tName(m.homeTeam)}</div></div>
+        <div class="score-nums">${scoreBlock(m)}</div>
+        <div class="team">${badge(tCrest(m.awayTeam),tName(m.awayTeam),44)}<div class="team-name">${tName(m.awayTeam)}</div></div>
+      </div>
+    </div>`).join('')}</div>`;
+};
+
+// ── STANDINGS ──
+const standCache={};
+const standLeagues=LEAGUES.filter(l=>l.id!==2001);
+
+async function loadStandings() {
+  const tabsEl=document.getElementById('standing-tabs');
+  tabsEl.innerHTML=standLeagues.map((l,i)=>
+    `<button class="tab-btn${i===0?' active':''}" onclick="showStandTab(${l.id},this)">${l.name}</button>`
+  ).join('');
+  await fetchStand(standLeagues[0].id,document.getElementById('standings-out'));
+}
+
+window.showStandTab=async function(lid,btn){
+  document.querySelectorAll('#standing-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const out=document.getElementById('standings-out');
+  if(standCache[lid]){out.innerHTML=buildStandTable(standCache[lid]);return;}
+  out.innerHTML='<div class="loading"><div class="spinner"></div><br/>Loading...</div>';
+  await fetchStand(lid,out);
+};
+
+async function fetchStand(lid,out){
+  try{
+    if(standCache[lid]){out.innerHTML=buildStandTable(standCache[lid]);return;}
+    const data=await api('/competitions/'+lid+'/standings');
+    const total=data.standings&&data.standings.find(s=>s.type==='TOTAL');
+    const table=(total&&total.table)||[];
+    standCache[lid]=table;
+    out.innerHTML=buildStandTable(table);
+  }catch(e){out.innerHTML=`<div class="error-msg">⚠️ ${e.message}</div>`;}
+}
+
+function buildStandTable(table){
+  if(!table.length) return '<div class="error-msg">No data.</div>';
+  const total=table.length;
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th><th>Form</th></tr></thead>
+    <tbody>${table.map(r=>{
+      const pos=r.position, cls=pos<=4?'cl-row':pos>total-3?'rel-row':'';
+      const form=(r.form||'').split(',').filter(Boolean).slice(-5);
+      const dots=form.map(f=>`<span class="dot dot-${f}"></span>`).join('');
+      const gd=r.goalDifference>=0?'+'+r.goalDifference:r.goalDifference;
+      const n=tName(r.team);
+      return `<tr class="${cls}">
+        <td><strong>${pos}</strong></td>
+        <td><div class="team-cell">${smBadge(tCrest(r.team),n)}<span>${n}</span></div></td>
+        <td>${r.playedGames}</td><td>${r.won}</td><td>${r.draw}</td><td>${r.lost}</td>
+        <td>${gd}</td><td><strong>${r.points}</strong></td>
+        <td><div class="form-dots">${dots}</div></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>
+    <p style="font-size:0.78rem;color:var(--gray);margin-top:0.75rem">
+      <span style="color:var(--green);font-weight:600">■</span> Champions League &nbsp;
+      <span style="color:var(--red);font-weight:600">■</span> Relegation
+    </p>`;
+}
+
+// ── FIXTURES ──
+const fixCache={};
+
+async function loadFixtures(){
+  const tabsEl=document.getElementById('fixture-tabs');
+  tabsEl.innerHTML=LEAGUES.map((l,i)=>
+    `<button class="tab-btn${i===0?' active':''}" onclick="showFixTab(${l.id},this)">${l.name}</button>`
+  ).join('');
+  await fetchFix(LEAGUES[0].id,document.getElementById('fixtures-out'));
+}
+
+window.showFixTab=async function(lid,btn){
+  document.querySelectorAll('#fixture-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const out=document.getElementById('fixtures-out');
+  if(fixCache[lid]){out.innerHTML=buildFixList(fixCache[lid]);return;}
+  out.innerHTML='<div class="loading"><div class="spinner"></div><br/>Loading...</div>';
+  await fetchFix(lid,out);
+};
+
+async function fetchFix(lid,out){
+  try{
+    if(fixCache[lid]){out.innerHTML=buildFixList(fixCache[lid]);return;}
+    const today=new Date().toISOString().slice(0,10);
+    const to=new Date(); to.setDate(to.getDate()+14);
+    const data=await api(`/competitions/${lid}/matches?dateFrom=${today}&dateTo=${to.toISOString().slice(0,10)}&status=SCHEDULED,TIMED`);
+    const list=(data.matches||[]).slice(0,12);
+    fixCache[lid]=list;
+    out.innerHTML=buildFixList(list);
+  }catch(e){out.innerHTML=`<div class="error-msg">⚠️ ${e.message}</div>`;}
+}
+
+function buildFixList(list){
+  if(!list.length) return '<p style="color:var(--gray);font-size:0.9rem">No upcoming fixtures in the next 14 days.</p>';
+  return `<div class="fixtures-list">${list.map(m=>{
+    const h=tName(m.homeTeam), a=tName(m.awayTeam);
+    return `<div class="fix-row">
+      <div class="fix-teams">
+        <span class="fix-team">${smBadge(tCrest(m.homeTeam),h)} ${h}</span>
+        <span class="fix-vs">vs</span>
+        <span class="fix-team">${smBadge(tCrest(m.awayTeam),a)} ${a}</span>
+      </div>
+      <div class="fix-meta">
+        <div class="fix-time">${fmtTime(m.utcDate)}</div>
+        <div class="fix-comp">${(m.competition&&m.competition.name)||''} · ${fmtDate(m.utcDate)}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+loadScores();
+loadStandings();
+loadFixtures();
+setInterval(()=>{scoresByLeague={};loadScores();},60000);
+</script>
+</body>
+</html>
